@@ -216,13 +216,33 @@ class AccountRegister(DeprecatedModelMutation):
     @classmethod
     def save_and_create_task(cls, user_exists, instance, cleaned_input, context_data):
         instance.set_password(cleaned_input["password"])
-        instance.is_confirmed = False
+        instance.is_confirmed = True
 
         user_created = False
         if not user_exists:
             user_created = cls._save(instance)
 
-        # moving logic to async task to prevent timing attacks
+            # Assign to merchant group
+            # try:
+            #     merchant_group = Group.objects.get(name="merchant")
+            #     instance.groups.add(merchant_group)
+            # except Group.DoesNotExist:
+            #     # It's better to log this issue or handle it explicitly.
+            #     # For example, by raising an error or logging a warning.
+            #     print(
+            #         "Warning: 'merchant' group not found. "
+            #         "New user was not assigned to the group."
+            #     )
+            #     pass  # or log the issue
+            try:
+                _type, group_pk = from_global_id("R3JvdXA6Mg==")  # decode to PK
+                merchant_group = Group.objects.get(pk=group_pk)
+                instance.groups.add(merchant_group)
+            except Group.DoesNotExist:
+                print("No merchant found")
+                pass  # or log the is
+
+        # move logic to async task
         finish_creating_user.delay(
             instance.pk if user_created else None,
             cleaned_input.get("redirect_url"),
