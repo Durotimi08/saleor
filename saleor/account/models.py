@@ -128,6 +128,17 @@ class UserManager(BaseUserManager["User"]):
         # Google OAuth2 backend send unnecessary username field
         extra_fields.pop("username", None)
 
+        # Ensure unique first_name
+        first_name = extra_fields.get("first_name", "")
+        base_first_name = first_name
+        unique_first_name = base_first_name
+        counter = 1
+        while unique_first_name and User.objects.filter(first_name=unique_first_name).exists():
+            unique_first_name = f"{base_first_name}{counter}"
+            counter += 1
+        if unique_first_name:
+            extra_fields["first_name"] = unique_first_name
+
         user = self.model(
             email=email, is_active=is_active, is_staff=is_staff, **extra_fields
         )

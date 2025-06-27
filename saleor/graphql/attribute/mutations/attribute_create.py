@@ -170,7 +170,7 @@ class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
         cls.clean_instance(info, instance)
 
         # Commit it
-        instance.save()
+        cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         cls.post_save_action(info, instance, cleaned_input)
         # Return the attribute that was created
@@ -180,3 +180,11 @@ class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_created, instance)
+
+    @classmethod
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
+        # Add user first name to metadata
+        user = info.context.user
+        if user and user.is_authenticated:
+            instance.metadata["store"] = user.first_name
+        instance.save()

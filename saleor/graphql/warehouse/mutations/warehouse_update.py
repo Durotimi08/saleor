@@ -10,6 +10,7 @@ from ...core.types import WarehouseError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Warehouse, WarehouseUpdateInput
 from .base import WarehouseMixin
+from django.core.exceptions import ValidationError
 
 
 class WarehouseUpdate(
@@ -61,3 +62,12 @@ class WarehouseUpdate(
         cls.save(info, instance, cleaned_input)
         cls.post_save_action(info, instance, cleaned_input)
         return cls.success_response(instance)
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = instance.metadata.get("store")
+            if store != user.first_name:
+                raise ValidationError("You do not have permission to modify this object.")
+        super().clean_instance(info, instance)

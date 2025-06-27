@@ -155,3 +155,12 @@ class ProductUpdate(ModelWithExtRefMutation):
         cls._save_m2m(info, instance, cleaned_input)
         cls._post_save_action(info, instance)
         return cls.success_response(instance)
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = instance.metadata.get("store")
+            if store != user.first_name:
+                raise ValidationError("You do not have permission to modify this object.")
+        super().clean_instance(info, instance)

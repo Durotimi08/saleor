@@ -1,5 +1,6 @@
 import graphene
 from django.db.models.expressions import Exists, OuterRef
+from django.core.exceptions import ValidationError
 
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
@@ -45,6 +46,11 @@ class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = instance.metadata.get("store")
+            if store != user.first_name:
+                raise ValidationError("You do not have permission to delete this object.")
         with traced_atomic_transaction():
             variants_id = list(
                 instance.variants.order_by("pk")

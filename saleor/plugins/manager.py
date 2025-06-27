@@ -205,7 +205,7 @@ class PluginsManager(PaymentInterface):
                 self.database
             ).filter(channel=channel)
             configs = {}
-            for db_plugin_config in plugin_manager_configs.iterator(chunk_size=1000):
+            for db_plugin_config in plugin_manager_configs:
                 configs[db_plugin_config.identifier] = db_plugin_config
             return configs
 

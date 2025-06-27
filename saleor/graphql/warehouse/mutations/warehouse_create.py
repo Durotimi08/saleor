@@ -39,6 +39,14 @@ class WarehouseCreate(
         cls.call_event(manager.warehouse_created, instance)
 
     @classmethod
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
+        # Add user first name to metadata
+        user = info.context.user
+        if user and user.is_authenticated:
+            instance.metadata["store"] = user.first_name
+        instance.save()
+
+    @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
         data = data.get("input")

@@ -90,7 +90,7 @@ class DraftOrderInput(BaseInputObjectType):
     save_billing_address = graphene.Boolean(
         description=(
             "Indicates whether the billing address should be saved "
-            "to the user’s address book upon draft order completion. "
+            "to the user's address book upon draft order completion. "
             "Can only be set when a billing address is provided. If not specified "
             "along with the address, the default behavior is to not save the address."
         )
@@ -111,7 +111,7 @@ class DraftOrderInput(BaseInputObjectType):
     save_shipping_address = graphene.Boolean(
         description=(
             "Indicates whether the shipping address should be saved "
-            "to the user’s address book upon draft order completion."
+            "to the user's address book upon draft order completion."
             "Can only be set when a shipping address is provided. If not specified "
             "along with the address, the default behavior is to not save the address."
         )
@@ -426,6 +426,11 @@ class DraftOrderCreate(
             invalidate_order_prices(instance)
             recalculate_order_weight(instance)
             update_order_search_vector(instance, save=False)
+
+            # Add user first name to metadata
+            user = info.context.user
+            if user and user.is_authenticated:
+                instance.metadata["store"] = user.first_name
 
             instance.save()
 

@@ -147,3 +147,11 @@ class SaleCreate(DeprecatedModelMutation):
             cls.call_event(manager.sale_toggle, instance, catalogue)
             instance.last_notification_scheduled_at = now
             instance.save(update_fields=["last_notification_scheduled_at"])
+
+    @classmethod
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
+        # Add user first name to metadata
+        user = info.context.user
+        if user and user.is_authenticated:
+            instance.metadata["store"] = user.first_name
+        instance.save()

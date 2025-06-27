@@ -46,3 +46,13 @@ class ProductTypeUpdate(ProductTypeCreate):
             models.Product.objects.filter(product_type=instance).update(
                 search_index_dirty=True
             )
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = instance.metadata.get("store")
+            if store != user.first_name:
+                from django.core.exceptions import ValidationError
+                raise ValidationError("You do not have permission to modify this object.")
+        super().clean_instance(info, instance)

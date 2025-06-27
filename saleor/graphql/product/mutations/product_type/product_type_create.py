@@ -151,3 +151,11 @@ class ProductTypeCreate(DeprecatedModelMutation):
             instance.product_attributes.set(product_attributes)
         if variant_attributes is not None:
             instance.variant_attributes.set(variant_attributes)
+
+    @classmethod
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
+        # Add user first name to metadata
+        user = info.context.user
+        if user and user.is_authenticated:
+            instance.metadata["store"] = user.first_name
+        instance.save()

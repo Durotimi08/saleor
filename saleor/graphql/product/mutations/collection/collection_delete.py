@@ -39,6 +39,12 @@ class CollectionDelete(ModelDeleteMutation):
         cls, _root, info: ResolveInfo, /, *, id: str
     ):
         instance = cls.get_node_or_error(info, id, only_type=Collection)
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = instance.metadata.get("store")
+            if store != user.first_name:
+                from django.core.exceptions import ValidationError
+                raise ValidationError("You do not have permission to delete this object.")
         product_ids = list(instance.products.values_list("id", flat=True))
 
         result = super().perform_mutation(_root, info, id=id)

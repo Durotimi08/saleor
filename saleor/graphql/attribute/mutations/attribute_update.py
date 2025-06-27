@@ -158,3 +158,12 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_updated, instance)
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = instance.metadata.get("store")
+            if store != user.first_name:
+                raise ValidationError("You do not have permission to modify this object.")
+        super().clean_instance(info, instance)

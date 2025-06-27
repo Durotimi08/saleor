@@ -136,6 +136,14 @@ class CollectionCreate(DeprecatedModelMutation):
             cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
+        # Add user first name to metadata
+        user = info.context.user
+        if user and user.is_authenticated:
+            instance.metadata["store"] = user.first_name
+        instance.save()
+
+    @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **kwargs):
         result = super().perform_mutation(_root, info, **kwargs)
         return CollectionCreate(

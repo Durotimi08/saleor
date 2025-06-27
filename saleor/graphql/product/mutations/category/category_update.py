@@ -1,5 +1,6 @@
 import graphene
 from django.db.models import Exists, OuterRef
+from django.core.exceptions import ValidationError
 
 from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
@@ -50,3 +51,12 @@ class CategoryUpdate(CategoryCreate):
                 ).values_list("channel_id", flat=True)
             )
             cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = instance.metadata.get("store")
+            if store != user.first_name:
+                raise ValidationError("You do not have permission to modify this object.")
+        super().clean_instance(info, instance)

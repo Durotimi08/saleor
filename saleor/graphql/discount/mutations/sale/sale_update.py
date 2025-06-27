@@ -256,3 +256,12 @@ class SaleUpdate(DeprecatedModelMutation):
             cls.call_event(manager.sale_toggle, instance, catalogue)
             instance.last_notification_scheduled_at = now
             instance.save(update_fields=["last_notification_scheduled_at"])
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = instance.metadata.get("store")
+            if store != user.first_name:
+                raise ValidationError("You do not have permission to modify this object.")
+        super().clean_instance(info, instance)

@@ -27,7 +27,12 @@ class CategoryDelete(ModelDeleteMutation):
         cls, _root, info: ResolveInfo, /, *, id: str
     ):
         instance = cls.get_node_or_error(info, id, only_type=Category)
-
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = instance.metadata.get("store")
+            if store != user.first_name:
+                from django.core.exceptions import ValidationError
+                raise ValidationError("You do not have permission to delete this object.")
         db_id = instance.id
         manager = get_plugin_manager_promise(info.context).get()
         delete_categories([db_id], manager=manager)

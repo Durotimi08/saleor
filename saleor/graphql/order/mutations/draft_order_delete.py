@@ -62,6 +62,11 @@ class DraftOrderDelete(
                     )
                 }
             )
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = instance.metadata.get("store")
+            if store != user.first_name:
+                raise ValidationError("You do not have permission to delete this object.")
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

@@ -169,6 +169,10 @@ class ProductCreate(DeprecatedModelMutation):
 
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
+        # Add user ID to metadata
+        user = info.context.user
+        if user and user.is_authenticated:
+             instance.metadata["store"] = user.first_name
         with traced_atomic_transaction():
             instance.search_index_dirty = True
             instance.save()

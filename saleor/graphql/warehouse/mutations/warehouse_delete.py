@@ -29,6 +29,13 @@ class WarehouseDelete(ModelDeleteMutation):
         model_type = cls.get_type_for_model()
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
 
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = instance.metadata.get("store")
+            if store != user.first_name:
+                from django.core.exceptions import ValidationError
+                raise ValidationError("You do not have permission to delete this object.")
+
         if instance:
             cls.clean_instance(info, instance)
 

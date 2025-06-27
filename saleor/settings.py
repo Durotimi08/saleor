@@ -289,6 +289,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.postgres",
     "django_celery_beat",
+    # Third-party apps
+    "rest_framework",
     # Local apps
     "saleor.permission",
     "saleor.auth",
@@ -323,6 +325,8 @@ INSTALLED_APPS = [
     "django_countries",
     "django_filters",
     "phonenumber_field",
+    # Custom REST API app
+    "saleor.rest_api",
 ]
 
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
@@ -1084,3 +1088,8 @@ patch_db()
 # Patch `Local` to remove all references that could result in reference cycles,
 # allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
 patch_local()
+
+REST_FRAMEWORK = {
+    "UNAUTHENTICATED_USER": None,
+    "UNAUTHENTICATED_TOKEN": None,
+}

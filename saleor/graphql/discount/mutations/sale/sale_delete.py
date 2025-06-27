@@ -1,5 +1,6 @@
 import graphene
 from django.db.models import Exists, OuterRef
+from django.core.exceptions import ValidationError
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount import models
@@ -50,6 +51,11 @@ class SaleDelete(ModelDeleteMutation):
         cls, root, info: ResolveInfo, /, *, id: str
     ):
         promotion = cls.get_promotion_instance(id)
+        user = info.context.user
+        if user and user.is_authenticated:
+            store = promotion.metadata.get("store")
+            if store != user.first_name:
+                raise ValidationError("You do not have permission to delete this object.")
         old_sale_id = promotion.old_sale_id
         promotion_id = promotion.id
 
